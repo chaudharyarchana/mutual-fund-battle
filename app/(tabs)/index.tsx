@@ -1,6 +1,10 @@
-import AssetCard from "@/components/AssestCard";
+import AssetCard from "@/components/AssetCard";
+import { useFunds } from "@/hooks/useFunds";
 import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 import {
+  ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,81 +13,95 @@ import {
 } from "react-native";
 
 export default function Home() {
-  const assets = [
-    {
-      id: 1,
-      type: "EQUITY",
-      name: "Vanguard 5...",
-      subtitle: "S&P 500 INDEX",
-      metric: "YTD Return",
-      value: "+14.2%",
-      progress: 0.7,
-      color: "#F0A726",
-      icon: "👦🏻",
-    },
-    {
-      id: 2,
-      type: "DEBT",
-      name: "Fidelity Bond",
-      subtitle: "TOTAL RETURN",
-      metric: "Yield",
-      value: "4.8%",
-      progress: 0.5,
-      color: "#7B91B3",
-      icon: "👨🏻",
-    },
-    {
-      id: 3,
-      type: "HYBRID",
-      name: "Balanced A...",
-      subtitle: "MULTI-ASSET",
-      metric: "1Y Growth",
-      value: "+8.5%",
-      progress: 0.6,
-      color: "#5A7C9E",
-      icon: "🛡️",
-    },
-    {
-      id: 4,
-      type: "EQUITY",
-      name: "QQQ Trust",
-      subtitle: "TECH FOCUS",
-      metric: "YTD Return",
-      value: "+22.1%",
-      progress: 0.85,
-      color: "#F0A726",
-      icon: "🦊",
-    },
-  ];
+  // limit 4 for frontend-side pagination
+  const { funds, loading, error, refetch, loadMore, hasMore, refreshing } =
+    useFunds(4);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const leftColumnAssets = assets.filter((_, index) => index % 2 === 0);
-  const rightColumnAssets = assets.filter((_, index) => index % 2 === 1);
+  const leftColumnFunds = funds.filter((_, index) => index % 2 === 0);
+  const rightColumnFunds = funds.filter((_, index) => index % 2 === 1);
+
+  const handleLoadMore = () => {
+    if (hasMore && !loadingMore && !loading) {
+      setLoadingMore(true);
+      loadMore();
+      // Keep state active briefly to let the layout settle
+      setTimeout(() => setLoadingMore(false), 1000);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        // This pushes the internal content up so the loader clears the bottom bar
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        // Higher throttle (16ms) makes scroll detection much more responsive
+        scrollEventThrottle={16}
+        onScroll={({ nativeEvent }) => {
+          const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+          // Trigger 150px before the bottom to make it feel seamless
+          const isCloseToBottom =
+            layoutMeasurement.height + contentOffset.y >=
+            contentSize.height - 150;
+
+          if (isCloseToBottom) {
+            handleLoadMore();
+          }
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refetch}
+            tintColor="#FFD700"
+          />
+        }
+      >
         <View style={styles.titleSection}>
           <Text style={styles.mainTitle}>My Deck</Text>
-          <Text style={styles.subtitle}>4 ACTIVE ASSETS</Text>
+          <Text style={styles.subtitle}>
+            {funds.length} ACTIVE ASSET{funds.length !== 1 ? "S" : ""}
+          </Text>
         </View>
 
         <TouchableOpacity style={styles.searchButton}>
           <Ionicons name="search" size={15} color="#ffffff" />
         </TouchableOpacity>
 
-        <View style={styles.grid}>
-          <View style={styles.columnLeft}>
-            {leftColumnAssets.map((asset) => (
-              <AssetCard key={asset.id} asset={asset} />
-            ))}
-          </View>
+        {funds.length === 0 && !loading ? (
+          <Text style={styles.emptyText}>No funds available</Text>
+        ) : (
+          <>
+            <View style={styles.grid}>
+              <View style={styles.columnLeft}>
+                {leftColumnFunds.map((fund) => (
+                  <AssetCard key={fund.id} asset={fund} />
+                ))}
+              </View>
+              <View style={styles.columnRight}>
+                {rightColumnFunds.map((fund) => (
+                  <AssetCard key={fund.id} asset={fund} />
+                ))}
+              </View>
+            </View>
 
-          <View style={styles.columnRight}>
-            {rightColumnAssets.map((asset) => (
-              <AssetCard key={asset.id} asset={asset} />
-            ))}
-          </View>
-        </View>
+            {/* SPACED FOOTER SECTION */}
+            <View style={styles.footerContainer}>
+              {loadingMore ? (
+                <View style={styles.loadMoreContainer}>
+                  <ActivityIndicator size="small" color="#FFD700" />
+                  <Text style={styles.loadMoreText}>Loading more...</Text>
+                </View>
+              ) : !hasMore && funds.length > 0 ? (
+                <Text style={styles.endOfListText}>That's all the funds!</Text>
+              ) : (
+                // Maintain height even when not loading to prevent layout jumps
+                <View style={{ height: 50 }} />
+              )}
+            </View>
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -96,7 +114,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 20,
+    // CRITICAL: Padding must be greater than your bottom bar height (e.g., 140)
+    paddingBottom: 140,
   },
   titleSection: {
     marginTop: 10,
@@ -106,7 +128,6 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: "800",
     color: "#FFFFFF",
-    marginBottom: 5,
   },
   subtitle: {
     fontSize: 12,
@@ -124,20 +145,28 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#2A3B52",
+    zIndex: 10,
   },
   grid: {
     flexDirection: "row",
     marginTop: 20,
-    paddingBottom: 100,
     justifyContent: "space-between",
   },
-  columnLeft: {
-    width: "48%",
+  columnLeft: { width: "48%" },
+  columnRight: { width: "48%", marginTop: 20 },
+  footerContainer: {
+    marginTop: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    minHeight: 60,
   },
-  columnRight: {
-    width: "48%",
-    marginTop: 20,
+  loadMoreContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
+  loadMoreText: { color: "#8EA3B8", fontSize: 14 },
+  endOfListText: { color: "#5A6B7D", fontSize: 14, fontStyle: "italic" },
+  emptyText: { color: "#FFFFFF", textAlign: "center", marginTop: 50 },
 });
