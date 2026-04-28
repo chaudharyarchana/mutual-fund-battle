@@ -7,7 +7,7 @@ export const transformSchemeToCard = (scheme) => {
     name: truncateName(scheme.name),
     subtitle: scheme.category || "N/A",
     metric: "NAV",
-    value: `₹${parseFloat(scheme.nav).toFixed(2)}`,
+    value: `+${parseFloat(scheme.nav).toFixed(2)}%`,
     progress: calculateProgress(scheme.day_change_pct),
     nav: scheme.nav, //
     expenseRatio: scheme.expense_ratio,

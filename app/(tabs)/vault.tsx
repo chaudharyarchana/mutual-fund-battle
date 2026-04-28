@@ -61,11 +61,11 @@ export default function Vault() {
         decelerationRate="fast"
         snapToInterval={280} 
        renderItem={({ item }) => (
-  <SavedCard
-    asset={item}
-    onPress={() => router.push({ pathname: "/details", params: { amfi_code: item.id } })}
-    onLongPress={() => handleRemove(item.id)}
-  />
+        <SavedCard
+        asset={item}
+        onPress={() => router.push({ pathname: "/details", params: { amfi_code: item.id } })}
+        onLongPress={() => handleRemove(item.id)}
+        />
 )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -87,7 +87,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 25,
-    marginBottom: 30,
   },
   mainTitle: {
     fontSize: 42,
@@ -98,7 +97,7 @@ const styles = StyleSheet.create({
   statsText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#8EA3B8",
+    color: "#ffffff",
     letterSpacing: 1.5,
     marginTop: 5,
     textTransform: "uppercase",
@@ -106,7 +105,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingLeft: 25,
     paddingRight: 50,
-    alignItems: "center",
+    marginTop: 40,
   },
   cardWrapper: {
     marginRight: 20,

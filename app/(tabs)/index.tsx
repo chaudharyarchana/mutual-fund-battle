@@ -34,7 +34,7 @@ export default function Home() {
     Alert.alert("Error", "This card has no unique ID and cannot be saved.");
     return;
   }
-
+ 
   Alert.alert(
     "Collect Card",
     `Save ${item.name} to your Vault?`,
@@ -48,7 +48,7 @@ export default function Home() {
             name: item.name || "Unknown",
             subtitle: item.subtitle || item.amc_name || "Mutual Fund",
             nav: item.nav || 0,
-            category: item.category || "General",
+            category: item.type || "General",
             morningstar: item.morningstar || 0
           };
 
@@ -94,8 +94,8 @@ export default function Home() {
         }
       >
         <View style={styles.titleSection}>
-          <Text style={styles.mainTitle}>Market</Text>
-          <Text style={styles.subtitle}>{funds.length} DISCOVERED</Text>
+          <Text style={styles.mainTitle}>My Deck</Text>
+          <Text style={styles.subtitle}>{funds.length} ACTIVE ASSETS</Text>
         </View>
 
         <TouchableOpacity

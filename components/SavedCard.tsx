@@ -7,8 +7,9 @@ const CARD_WIDTH = width * 0.75;
 
 export default function SavedCard({ asset, onPress, onLongPress }: any) {
   const isEquity = asset?.category?.toLowerCase().includes("equity");
-  const themeColor = isEquity ? "#F0A726" : "#7B91B3";
+  const themeColor = isEquity ? "#FFD706" : "#7B91B3";
   const returnVal = asset?.returns_1y || "+0.0%";
+  console.log(asset)
 
   return (
     <TouchableOpacity
@@ -18,8 +19,8 @@ export default function SavedCard({ asset, onPress, onLongPress }: any) {
       style={[styles.card, { borderColor: themeColor }]}
     >
       <View style={styles.cardInner}>
-        <View style={styles.badge}>
-          <Text style={[styles.badgeText, { color: themeColor }]}>
+        <View style={[styles.badge, { borderColor: themeColor, backgroundColor: `${themeColor}26` }]}>
+          <Text style={[styles.badgeText, { color: themeColor },  ]}>
             {asset?.category?.toUpperCase() || "DEBT"}
           </Text>
         </View>
@@ -66,9 +67,9 @@ export default function SavedCard({ asset, onPress, onLongPress }: any) {
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    height: 480,
+    height: 400,
     backgroundColor: "#1A2634",
-    borderRadius: 20,
+    borderRadius: 10,
     borderWidth: 2,
     padding: 15,
     marginRight: 20,
@@ -84,14 +85,13 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.05)",
     borderStyle: "dashed",
     borderRadius: 15,
-    padding: 15,
+    padding: 10,
   },
   badge: {
     alignSelf: "flex-start",
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical:10,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
     borderRadius: 4,
   },
   badgeText: {

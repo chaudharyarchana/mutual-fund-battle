@@ -1,4 +1,5 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const AssetCard = ({ asset, onPress, onLongPress }: any) => {
   return (
@@ -7,70 +8,82 @@ const AssetCard = ({ asset, onPress, onLongPress }: any) => {
       onLongPress={onLongPress} 
       delayLongPress={500}
     >
-    <View
-      style={[
-        styles.card,
-        asset.type === "EQUITY" && styles.cardEquity,
-        asset.type === "DEBT" && styles.cardDebt,
-        asset.type === "HYBRID" && styles.cardHybrid,
-      ]}
-    >
-      {/* Type Badge */}
       <View
         style={[
-          styles.badge,
-          asset.type === "EQUITY" && styles.badgeEquity,
-          asset.type === "DEBT" && styles.badgeDebt,
-          asset.type === "HYBRID" && styles.badgeDebt,
+          styles.card,
+          asset.type === "EQUITY" && styles.cardEquity,
+          asset.type === "DEBT" && styles.cardDebt,
+          asset.type === "HYBRID" && styles.cardHybrid,
         ]}
       >
-        <Text
-          style={[
-            styles.badgeText,
-            asset.type === "EQUITY" && styles.badgeEquityText,
-            asset.type === "DEBT" && styles.badgeDebtText,
-            asset.type === "HYBRID" && styles.badgeDebtText,
-          ]}
+        {/* Absolute positioned background image for the top half */}
+        <ImageBackground 
+          source={require("@/assets/images/cartoon.jpg")} 
+          style={styles.backgroundImage}
+          imageStyle={styles.backgroundImageStyle}
         >
-          {asset.type}
-        </Text>
-      </View>
+          {/* Faded Effect at the bottom of the image */}
+          <LinearGradient
+            colors={['transparent', '#1A2432']} // Blends from nothing to the card's BG color
+            style={styles.gradient}
+          />
+        </ImageBackground>
 
-      <View style={styles.iconPlaceholder}>
-      </View>
-
-      {/* Fund Name */}
-      <Text style={styles.fundName} numberOfLines={1} ellipsizeMode="tail">
-        {asset.name}
-      </Text>
-      <Text style={styles.fundSubtitle}>{asset.subtitle}</Text>
-
-      {/* Metric */}
-      <View style={styles.metricSection}>
-        <Text style={styles.metricLabel}>{asset.metric}</Text>
-        <Text
-          style={[
-            styles.metricValue,
-            asset.value.startsWith("+") && styles.metricPositive,
-          ]}
-        >
-          {asset.value}
-        </Text>
-      </View>
-
-      {/* Progress Bar */}
-      <View style={styles.progressBar}>
+        {/* Type Badge */}
         <View
           style={[
-            styles.progressFill,
-            { width: `${asset.progress * 100}%` },
-            asset.type === "EQUITY" && styles.progressEquity,
-            asset.type === "DEBT" && styles.progressDebt,
-            asset.type === "HYBRID" && styles.progressHybrid,
+            styles.badge,
+            asset.type === "EQUITY" && styles.badgeEquity,
+            asset.type === "DEBT" && styles.badgeDebt,
+            asset.type === "HYBRID" && styles.badgeDebt,
           ]}
-        />
+        >
+          <Text
+            style={[
+              styles.badgeText,
+              asset.type === "EQUITY" && styles.badgeEquityText,
+              asset.type === "DEBT" && styles.badgeDebtText,
+              asset.type === "HYBRID" && styles.badgeDebtText,
+            ]}
+          >
+            {asset.type}
+          </Text>
+        </View>
+
+        <View style={styles.iconPlaceholder} />
+
+        {/* Fund Name */}
+        <Text style={styles.fundName} numberOfLines={1} ellipsizeMode="tail">
+          {asset.name}
+        </Text>
+        <Text style={styles.fundSubtitle}>{asset.subtitle}</Text>
+
+        {/* Metric */}
+        <View style={styles.metricSection}>
+          <Text style={styles.metricLabel}>{asset.metric}</Text>
+          <Text
+            style={[
+              styles.metricValue,
+              asset.value?.startsWith("+") && styles.metricPositive,
+            ]}
+          >
+            {asset.value}
+          </Text>
+        </View>
+
+        {/* Progress Bar */}
+        <View style={styles.progressBar}>
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${asset.progress * 100}%` },
+              asset.type === "EQUITY" && styles.progressEquity,
+              asset.type === "DEBT" && styles.progressDebt,
+              asset.type === "HYBRID" && styles.progressHybrid,
+            ]}
+          />
+        </View>
       </View>
-    </View>
     </TouchableOpacity>
   );
 };
@@ -84,16 +97,22 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     borderWidth: 1,
     minHeight: 220,
+    overflow: 'hidden', // Required to clip the image to card corners
   },
-  cardEquity: {
-    borderColor: "#FFD700",
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '75%', // Adjust this percentage to control how much of the top is filled
   },
-  cardDebt: {
-    borderColor: "#7B91B3",
+  backgroundImageStyle: {
+    opacity: 0.5,
+    resizeMode: 'cover',
   },
-  cardHybrid: {
-    borderColor: "#5A7C9E",
-  },
+  cardEquity: { borderColor: "#FFD700" },
+  cardDebt: { borderColor: "#7B91B3" },
+  cardHybrid: { borderColor: "#5A7C9E" },
   badge: {
     alignSelf: "flex-start",
     paddingHorizontal: 12,
@@ -114,28 +133,19 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "500",
     letterSpacing: 1,
-    paddingVertical: 5,
   },
-  badgeEquityText: {
-    color: "#FFD700",
-  },
-  badgeDebtText: {
-    color: "#7B91B3",
-  },
+  badgeEquityText: { color: "#FFD700" },
+  badgeDebtText: { color: "#7B91B3" },
   iconPlaceholder: {
     width: 60,
     height: 60,
     marginBottom: 12,
-  },
-  iconEmoji: {
-    fontSize: 50,
   },
   fundName: {
     fontSize: 22,
     fontWeight: "800",
     color: "#FFFFFF",
     marginBottom: 4,
-    overflow: "hidden",
   },
   fundSubtitle: {
     fontSize: 11,
@@ -143,6 +153,13 @@ const styles = StyleSheet.create({
     color: "#8EA3B8",
     letterSpacing: 0.5,
     marginBottom: 16,
+  },
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '40%', // Adjust how "tall" the fade effect is
   },
   metricSection: {
     flexDirection: "row",
@@ -160,9 +177,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#FFFFFF",
   },
-  metricPositive: {
-    color: "#FFD700",
-  },
+  metricPositive: { color: "#FFD700" },
   progressBar: {
     height: 6,
     backgroundColor: "#2A3B52",
@@ -173,15 +188,9 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 3,
   },
-  progressEquity: {
-    backgroundColor: "#FFD700",
-  },
-  progressDebt: {
-    backgroundColor: "#7B91B3",
-  },
-  progressHybrid: {
-    backgroundColor: "#5A7C9E",
-  },
+  progressEquity: { backgroundColor: "#FFD700" },
+  progressDebt: { backgroundColor: "#7B91B3" },
+  progressHybrid: { backgroundColor: "#5A7C9E" },
 });
 
 export default AssetCard;
