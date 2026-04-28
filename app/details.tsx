@@ -17,8 +17,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-// Note: If you have a chart library like react-native-wagmi-charts or
-// react-native-chart-kit, you would use it for the sparkline.
 
 export default function Details() {
   const { amfi_code } = useLocalSearchParams();
@@ -93,7 +91,6 @@ export default function Details() {
         onPress={handleFlip}
         style={styles.flipContainer}
       >
-        {/* Front Side: Visual Centerpiece Card [cite: 34, 48] */}
         <Animated.View style={[styles.flipCard, frontAnimatedStyle]}>
           <Powercard
             fund={{
@@ -119,7 +116,6 @@ export default function Details() {
 
             <View style={styles.chartContainer}>
               <Text style={styles.metaLabel}>30-DAY NAV SPARKLINE</Text>
-              {/* If using a library, replace this View with <LineChart /> */}
               <View style={styles.sparklinePlaceholder}>
                 <Ionicons
                   name="trending-up"

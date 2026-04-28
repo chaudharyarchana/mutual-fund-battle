@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-export default function Home() {
+export default function Vault() {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Hello World Vault Page</Text>

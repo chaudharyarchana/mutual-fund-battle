@@ -31,9 +31,7 @@ const AssetCard = ({ asset }: any) => {
         </Text>
       </View>
 
-      {/* Character Icon Placeholder */}
       <View style={styles.iconPlaceholder}>
-        {/* <Text style={styles.iconEmoji}>{asset.icon}</Text> */}
       </View>
 
       {/* Fund Name */}

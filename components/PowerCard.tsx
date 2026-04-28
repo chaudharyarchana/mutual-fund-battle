@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-export default function Powercard({ fund }) {
+export default function Powercard({ fund }: any) {
   const cardColor = fund.color || "#7B91B3";
   const hpPercent = Math.min((fund.nav / 2000) * 100, 100);
 

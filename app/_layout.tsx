@@ -27,7 +27,6 @@ function CustomNavbar() {
   );
 }
 
-// app/_layout.tsx
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
@@ -41,12 +40,7 @@ export default function RootLayout() {
             animation: "slide_from_right",
           }}
         >
-          {/* CHANGE THIS: Use "(tabs)" instead of "index". 
-             This keeps the bottom bar contained only within the tab routes.
-          */}
           <Stack.Screen name="(tabs)" />
-
-          {/* This screen is outside the tabs, so it will have no bottom bar */}
           <Stack.Screen
             name="details"
             options={{

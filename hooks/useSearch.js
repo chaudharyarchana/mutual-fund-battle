@@ -1,4 +1,3 @@
-// hooks/useSearch.js
 import { searchSchemes } from "@/services/fundService";
 import { useEffect, useState } from "react";
 

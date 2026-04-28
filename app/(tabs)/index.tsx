@@ -107,19 +107,19 @@ export default function Home() {
             <FlatList
               data={searchResults}
               keyExtractor={(_, idx) => idx.toString()}
-              renderItem={({ item }) => (
+              renderItem={({ item } : any) => (
                 <TouchableOpacity
                   style={styles.searchResultItem}
                   onPress={() => {
                     closeSearch();
                     router.push({
                       pathname: "/details",
-                      params: { amfi_code: item.amfi_code },
+                      params: { amfi_code: item?.amfi_code },
                     });
                   }}
                 >
-                  <Text style={styles.resultTitle}>{item.name}</Text>
-                  <Text style={styles.resultSubtitle}>{item.subtitle}</Text>
+                  <Text style={styles.resultTitle}>{item?.name}</Text>
+                  <Text style={styles.resultSubtitle}>{item?.subtitle}</Text>
                 </TouchableOpacity>
               )}
               ListEmptyComponent={() =>
@@ -169,7 +169,6 @@ const styles = StyleSheet.create({
   columnLeft: { width: "48%" },
   columnRight: { width: "48%", marginTop: 20 },
 
-  // Modal styles
   modalContainer: {
     flex: 1,
     backgroundColor: "#0F1B2E",

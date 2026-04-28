@@ -6,7 +6,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false, // Hidden because we use CustomNavbar in Root
+        headerShown: false, 
         tabBarActiveTintColor: "#FFD700",
         tabBarInactiveTintColor: "#8E8E93",
         tabBarStyle: {
@@ -18,7 +18,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index" // Matches index.tsx
+        name="index" 
         options={{
           title: "DECK",
           tabBarIcon: ({ color }) => (
@@ -27,7 +27,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="battle" // Matches battle.tsx
+        name="battle" 
         options={{
           title: "BATTLE",
           tabBarIcon: ({ color }) => (
@@ -40,7 +40,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="vault" // Matches vault.tsx
+        name="vault" 
         options={{
           title: "VAULT",
           tabBarIcon: ({ color }) => (

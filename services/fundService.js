@@ -1,6 +1,6 @@
 import apiClient from "./api";
 
-// Get all schemes (paginated)
+// Get all schemes
 export const getAllSchemes = async () => {
   try {
     const response = await apiClient.get("/schemes");
