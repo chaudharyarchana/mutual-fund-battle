@@ -48,6 +48,13 @@ export default function RootLayout() {
               animation: "slide_from_bottom",
             }}
           />
+          <Stack.Screen
+            name="battleResult"
+            options={{
+              presentation: "card",
+              animation: "slide_from_bottom",
+            }}
+          />
         </Stack>
       </View>
     </SafeAreaProvider>
