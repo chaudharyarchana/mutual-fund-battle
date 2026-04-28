@@ -18,7 +18,7 @@ export default function BattleSelection() {
     { id: "expense", label: "EXPENSE RATIO", icon: "shield-checkmark-outline" },
   ];
 
-  const { funds: marketFunds } = useFunds(1);
+  const { funds: marketFunds } = useFunds(4);
 
   useEffect(() => {
     loadDeck();
@@ -28,15 +28,14 @@ export default function BattleSelection() {
     const cards = await getSavedDeck();
     setMyDeck(cards);
   };
-
   const startBattle = () => {
     if (selectedMyCard && selectedOpponent) {
       router.push({
         pathname: "/battleResult",
         params: { 
-          playerAmfi: selectedMyCard.id,
-          opponentAmfi: selectedOpponent.id,
-          attribute: selectedAttribute
+          playerNav: selectedMyCard.nav,
+          opponentNav: selectedOpponent.nav,
+          attribute: selectedAttribute,
         }
       });
     }
