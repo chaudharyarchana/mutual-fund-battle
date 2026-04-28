@@ -1,20 +1,18 @@
-// Transform API response to card format
-// Transform API response to card format
 export const transformSchemeToCard = (scheme) => {
   const categoryType = getCategoryType(scheme.category); //
 
   return {
-    id: scheme.amfi_code || scheme.isin, // Updated to use amfi_code or ISIN
-    type: categoryType, //
-    name: truncateName(scheme.name), // Updated key from scheme_name to name
-    subtitle: scheme.category || "N/A", //
+    id: scheme.amfi_code || scheme.isin,
+    type: categoryType,
+    name: truncateName(scheme.name),
+    subtitle: scheme.category || "N/A",
     metric: "NAV",
-    value: `₹${parseFloat(scheme.nav).toFixed(2)}`, // Formats NAV as currency
-    progress: calculateProgress(scheme.day_change_pct), // Normalized progress based on change
+    value: `₹${parseFloat(scheme.nav).toFixed(2)}`,
+    progress: calculateProgress(scheme.day_change_pct),
     nav: scheme.nav, //
-    expenseRatio: scheme.expense_ratio, //
-    rating: scheme.morningstar || 0, // Updated key from rating to morningstar
-    color: getCategoryColor(categoryType), //
+    expenseRatio: scheme.expense_ratio,
+    rating: scheme.morningstar || 0,
+    color: getCategoryColor(categoryType),
   };
 };
 
@@ -68,13 +66,21 @@ const calculateProgress = (change) => {
   return Math.max(0, Math.min(1, normalized));
 };
 
-// Format return value
-const formatReturn = (returnValue) => {
-  if (!returnValue && returnValue !== 0) return "N/A";
+export const transformDetailToPowercard = (apiResponse) => {
+  const fund = apiResponse.data;
 
-  const numValue = parseFloat(returnValue);
-  if (isNaN(numValue)) return "N/A";
+  const category = fund.category || "Debt";
 
-  const sign = numValue >= 0 ? "+" : "";
-  return `${sign}${numValue.toFixed(1)}%`;
+  return {
+    id: fund.amfi_code,
+    name: fund.name,
+    subtitle: fund.amc_name,
+    type: category.toUpperCase(),
+    nav: fund.nav,
+    value: `₹${fund.nav.toFixed(2)}`,
+    rating: fund.morningstar || 0,
+    expenseRatio: fund.expense_ratio || "0.00",
+    returns_1y: "0",
+    color: "#7B91B3",
+  };
 };

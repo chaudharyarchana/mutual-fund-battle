@@ -11,7 +11,7 @@ export const getAllSchemes = async () => {
 };
 
 // Get scheme detail
-export const getSchemeDetail = async (amfi_code) => {
+export const getFundDetails = async (amfi_code) => {
   try {
     const response = await apiClient.get(`/schemes/${amfi_code}`);
     return response.data;

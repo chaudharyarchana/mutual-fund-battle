@@ -60,7 +60,6 @@ export default function Home() {
           <Text style={styles.subtitle}>{funds.length} ACTIVE ASSETS</Text>
         </View>
 
-        {/* Existing search button triggers the modal */}
         <TouchableOpacity
           style={styles.searchButton}
           onPress={() => setSearchModalVisible(true)}
@@ -70,37 +69,18 @@ export default function Home() {
 
         <View style={styles.grid}>
           <View style={styles.columnLeft}>
-            {leftColumnFunds.map((fund) => (
-              <AssetCard
-                key={fund.id}
-                asset={fund}
-                onPress={() =>
-                  router.push({
-                    pathname: "/details",
-                    params: { amfi_code: fund.id },
-                  })
-                }
-              />
+            {leftColumnFunds.map((fund, idx) => (
+              <AssetCard key={idx} asset={fund} />
             ))}
           </View>
           <View style={styles.columnRight}>
-            {rightColumnFunds.map((fund) => (
-              <AssetCard
-                key={fund.id}
-                asset={fund}
-                onPress={() =>
-                  router.push({
-                    pathname: "/details",
-                    params: { amfi_code: fund.id },
-                  })
-                }
-              />
+            {rightColumnFunds.map((fund, idx) => (
+              <AssetCard key={idx} asset={fund} />
             ))}
           </View>
         </View>
       </ScrollView>
 
-      {/* Requirement: Search screen as per task table [cite: 28] */}
       <Modal
         animationType="fade"
         visible={searchModalVisible}
@@ -132,10 +112,9 @@ export default function Home() {
                   style={styles.searchResultItem}
                   onPress={() => {
                     closeSearch();
-                    // Requirement: Tapping a result navigates to card detail
                     router.push({
                       pathname: "/details",
-                      params: { amfi_code: item.id },
+                      params: { amfi_code: item.amfi_code },
                     });
                   }}
                 >
@@ -143,7 +122,6 @@ export default function Home() {
                   <Text style={styles.resultSubtitle}>{item.subtitle}</Text>
                 </TouchableOpacity>
               )}
-              // Requirement: Empty state for empty deck/search [cite: 46]
               ListEmptyComponent={() =>
                 searchQuery.length > 1 ? (
                   <Text style={styles.emptyText}>

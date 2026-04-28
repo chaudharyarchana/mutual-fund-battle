@@ -16,7 +16,6 @@ export const useSearch = (query) => {
       setIsSearching(true);
       try {
         const data = await searchSchemes(query);
-        // Direct assignment of raw data without transformation
         setSearchResults(Array.isArray(data.data) ? data.data : []);
       } catch (error) {
         console.error("Search error:", error);
