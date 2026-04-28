@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0D1B2A",
-    paddingTop: 60,
+    paddingTop: 20,
     paddingHorizontal: 20,
   },
   center: {

@@ -3,7 +3,7 @@ import { useFunds } from "@/hooks/useFunds";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function BattleSelection() {
   const router = useRouter();
@@ -11,6 +11,7 @@ export default function BattleSelection() {
   const [selectedMyCard, setSelectedMyCard] = useState<any>(null);
   const [selectedOpponent, setSelectedOpponent] = useState<any>(null);
   const [selectedAttribute, setSelectedAttribute] = useState<string>("return");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const attributes = [
     { id: "nav", label: "NAV", icon: "cash-outline" },
@@ -18,7 +19,7 @@ export default function BattleSelection() {
     { id: "expense", label: "EXPENSE RATIO", icon: "shield-checkmark-outline" },
   ];
 
-  const { funds: marketFunds } = useFunds(4);
+  const { funds: marketFunds, refetch: refetchMarket } = useFunds(4);
 
   useEffect(() => {
     loadDeck();
@@ -28,6 +29,28 @@ export default function BattleSelection() {
     const cards = await getSavedDeck();
     setMyDeck(cards);
   };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Reload deck
+      await loadDeck();
+      
+      // Refetch market funds
+      if (refetchMarket) {
+        await refetchMarket();
+      }
+      
+      // Clear selections
+      setSelectedMyCard(null);
+      setSelectedOpponent(null);
+    } catch (error) {
+      console.error("Error refreshing:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const startBattle = () => {
     if (selectedMyCard && selectedOpponent) {
       router.push({
@@ -42,7 +65,19 @@ export default function BattleSelection() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          tintColor="#FFD700"
+          colors={["#FFD700"]}
+          progressBackgroundColor="#1A2634"
+        />
+      }
+    >
       <Text style={styles.title}>CHOOSE YOUR FIGHTER</Text>
 
       <View style={styles.selectionRow}>
@@ -108,38 +143,50 @@ export default function BattleSelection() {
 
       <View style={styles.listSection}>
         <Text style={styles.sectionTitle}>SELECT FROM VAULT</Text>
-        <FlatList
-          data={myDeck}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={[styles.miniCard, selectedMyCard?.id === item.id && styles.selectedBorder]}
-              onPress={() => setSelectedMyCard(item)}
-            >
-              <Text style={styles.miniCardText}>{item.name}</Text>
-            </TouchableOpacity>
-          )}
-        />
+        {myDeck.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No cards in your vault. Collect cards first!</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={myDeck}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity 
+                style={[styles.miniCard, selectedMyCard?.id === item.id && styles.selectedBorder]}
+                onPress={() => setSelectedMyCard(item)}
+              >
+                <Text style={styles.miniCardText}>{item.name}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        )}
       </View>
 
       <View style={styles.listSection}>
         <Text style={styles.sectionTitle}>SELECT OPPONENT (MARKET)</Text>
-        <FlatList
-          data={marketFunds}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={[styles.miniCard, selectedOpponent?.id === item.id && styles.selectedBorder]}
-              onPress={() => setSelectedOpponent(item)}
-            >
-              <Text style={styles.miniCardText}>{item.name}</Text>
-            </TouchableOpacity>
-          )}
-        />
+        {isRefreshing ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color="#FFD700" />
+          </View>
+        ) : (
+          <FlatList
+            data={marketFunds}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity 
+                style={[styles.miniCard, selectedOpponent?.id === item.id && styles.selectedBorder]}
+                onPress={() => setSelectedOpponent(item)}
+              >
+                <Text style={styles.miniCardText}>{item.name}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        )}
       </View>
 
       <TouchableOpacity 
@@ -149,13 +196,27 @@ export default function BattleSelection() {
       >
         <Text style={styles.battleButtonText}>ENTER BATTLE ARENA</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0D1B2A", padding: 20 },
-  title: { color: "#FFD700", fontSize: 24, fontWeight: "900", textAlign: "center", marginTop: 40, letterSpacing: 2 },
+  container: { 
+    flex: 1, 
+    backgroundColor: "#0D1B2A"
+  },
+  scrollContent: {
+    padding: 20,
+    paddingTop: 20
+  },
+  title: { 
+    color: "#FFD700", 
+    fontSize: 24, 
+    fontWeight: "900", 
+    textAlign: "center", 
+    letterSpacing: 2,
+    marginBottom: 20
+  },
   selectionRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 30 },
   slot: { width: "40%", alignItems: "center" },
   slotLabel: { color: "#8EA3B8", fontSize: 10, fontWeight: "bold", marginBottom: 10 },
@@ -175,7 +236,22 @@ const styles = StyleSheet.create({
   miniCard: { width: 120, height: 60, backgroundColor: "#1E293B", borderRadius: 10, marginRight: 10, padding: 10, justifyContent: "center" },
   miniCardText: { color: "#FFF", fontSize: 10, fontWeight: "bold" },
   selectedBorder: { borderWidth: 2, borderColor: "#FFD700" },
-  battleButton: { backgroundColor: "#FFD700", padding: 20, borderRadius: 15, alignItems: "center", marginTop: "auto", marginBottom: 20 },
+  battleButton: { backgroundColor: "#FFD700", padding: 20, borderRadius: 15, alignItems: "center", marginTop: 20, marginBottom: 20 },
   disabledButton: { backgroundColor: "#2A3B52", opacity: 0.5 },
   battleButtonText: { color: "#0D1B2A", fontWeight: "900", letterSpacing: 1 },
+  emptyState: {
+    padding: 20,
+    backgroundColor: "#1A2634",
+    borderRadius: 10,
+    alignItems: "center"
+  },
+  emptyText: {
+    color: "#8EA3B8",
+    fontSize: 12,
+    fontStyle: "italic"
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: "center"
+  }
 });

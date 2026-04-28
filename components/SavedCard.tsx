@@ -9,7 +9,6 @@ export default function SavedCard({ asset, onPress, onLongPress }: any) {
   const isEquity = asset?.category?.toLowerCase().includes("equity");
   const themeColor = isEquity ? "#FFD706" : "#7B91B3";
   const returnVal = asset?.returns_1y || "+0.0%";
-  console.log(asset)
 
   return (
     <TouchableOpacity

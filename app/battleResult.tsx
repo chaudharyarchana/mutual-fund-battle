@@ -4,19 +4,36 @@ import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { Shadow } from "react-native-shadow-2";
 
 export default function Battle() {
-    const params = useLocalSearchParams();
+  const params = useLocalSearchParams();
   
   const attribute = (params.attribute as string) || "return";
-  const playerNav = (params.playerNav as string) || "Unknown Fund";
-  const opponentNav = (params.opponentNav as string) || "Unknown Fund";
+  const playerNav = parseFloat(params.playerNav as string) || 0;
+  const opponentNav = parseFloat(params.opponentNav as string) || 0;
 
+  // Determine winner based on attribute type
+  // For expense ratio, LOWER is better
+  // For nav and return, HIGHER is better
+  const isPlayerWinner = attribute === 'expense' 
+    ? playerNav < opponentNav 
+    : playerNav > opponentNav;
   
-  const isPlayerWinner =  parseInt(playerNav) > parseInt(opponentNav) ? true : false;
   const resultColor = isPlayerWinner ? "#FFD700" : "#FF4444";
   
-  const pVal = Math.floor(parseFloat(params.playerNav as string)) || 0;
-  const oVal = Math.floor(parseFloat(params.opponentNav  as string)) || 0;
-  
+  // Format values based on attribute
+  const formatValue = (value: number, attr: string) => {
+    if (attr === 'nav') return `₹${value.toFixed(2)}`;
+    if (attr === 'return') return `${value.toFixed(2)}%`;
+    if (attr === 'expense') return `${value.toFixed(2)}%`;
+    return value.toString();
+  };
+
+  const getAttributeLabel = (attr: string) => {
+    if (attr === 'nav') return 'NAV';
+    if (attr === 'return') return '1Y RETURN';
+    if (attr === 'expense') return 'EXPENSE RATIO';
+    return attr.toUpperCase();
+  };
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.content}>
@@ -47,90 +64,142 @@ export default function Battle() {
             </View>
 
             <View style={styles.mainCardContent}>
-              <Text style={styles.mainCardTitle}>Apex Growth</Text>
-              <Text style={styles.mainCardSubtitle}>Large Cap Equity</Text>
+              <Text style={styles.mainCardTitle}>Battle Result</Text>
+              <Text style={styles.mainCardSubtitle}>{getAttributeLabel(attribute)} Comparison</Text>
 
               <View style={styles.characterPlaceholder} />
 
               <View style={styles.mainProgressBar}>
-                <View style={styles.mainProgressFill} />
+                <View style={[
+                  styles.mainProgressFill, 
+                  { width: isPlayerWinner ? "85%" : "40%" }
+                ]} />
               </View>
             </View>
           </View>
         </Shadow>
 
+        {/* Main Battle Result Card - Shows selected attribute */}
+        
 
-
-        {/* NAV Attribute Row */}
-        <View style={[styles.comparisonCard, attribute === 'nav' && styles.activeAttrBorder]}>
-          <Text style={styles.comparisonLabel}>1Y RETURN </Text>
-          <View style={styles.comparisonValues}>
-            <Text style={styles.valueLeft}>{attribute === 'nav' ? pVal : "---"}</Text>
-            <Text style={styles.vsText}>VS</Text>
-            <Text style={styles.valueRight}>{attribute === 'nav' ? oVal : "---"}</Text>
-          </View>
-          {attribute === 'nav' && (
-            <View style={styles.resultIndicator}>
-               <Text style={[styles.resultIndicatorText]}>{isPlayerWinner ? "WIN" : "LOSE"}</Text>
+        {/* NAV Comparison (if not the main attribute) */}
+        {attribute !== 'nav' && (
+          <View style={styles.comparisonCard}>
+            <Text style={styles.comparisonLabel}>NAV</Text>
+            <View style={styles.comparisonValues}>
+              <Text style={styles.valueLeft}>₹{playerNav.toFixed(2)}</Text>
+              <Text style={styles.vsText}>VS</Text>
+              <Text style={styles.valueRight}>₹{opponentNav.toFixed(2)}</Text>
             </View>
-          )}
-        </View>
+          </View>
+        )}
 
-
-        {/* 1Y RETURN Highlight Card (Winner logic only if selected) */}
+        {/* 1Y Return Comparison (if not the main attribute) */}
+        {attribute !== 'return' && (
+          <View style={styles.comparisonCard}>
+            <Text style={styles.comparisonLabel}>1Y RETURN</Text>
+            <View style={styles.comparisonValues}>
+              <Text style={styles.valueLeft}>{playerNav.toFixed(2)}%</Text>
+              <Text style={styles.vsText}>VS</Text>
+              <Text style={styles.valueRight}>{opponentNav.toFixed(2)}%</Text>
+            </View>
+          </View>
+        )}
         <Shadow
-          distance={attribute === 'return' ? 15 : 0}
+          distance={15}
           startColor={isPlayerWinner ? "rgba(255, 217, 0, 0.4)" : "rgba(255, 68, 68, 0.4)"}
           stretch={true}
-          containerStyle={{ width: "80%", marginHorizontal: "auto", marginBottom: 16 }}
+          containerStyle={{ 
+    alignSelf: 'center', marginBottom: 16 }}
         >
-          <View style={[
-            styles.highlightCard, 
-            attribute !== 'return' && { borderColor: '#454545', shadowOpacity: 0 },
-            attribute === 'return' && { borderColor: resultColor }
-          ]}>
+          <View style={[styles.highlightCard, { borderColor: resultColor }]}>
             <View style={styles.highlightHeader}>
-              <Text style={[styles.highlightLabel, attribute !== 'return' && { color: '#8EA3B8' }]}>NAV ₹</Text>
-              {attribute === 'return' && <Ionicons name={isPlayerWinner ? "trophy" : "close-circle"} size={20} color={resultColor} />}
+              <Text style={[styles.highlightLabel, { color: resultColor }]}>
+                {getAttributeLabel(attribute)}
+              </Text>
+              <Ionicons 
+                name={isPlayerWinner ? "trophy" : "close-circle"} 
+                size={20} 
+                color={resultColor} 
+              />
             </View>
             <View style={styles.highlightValues}>
-              <Text style={styles.highlightValueWin}>{attribute === 'return' ? `${pVal}` : "--%"}</Text>
-              {attribute === 'return' && (
-                <View style={[styles.winBadge, { borderColor: resultColor }]}>
-                  <Text style={[styles.winText, { color: resultColor }]}>{isPlayerWinner ? "WIN" : "LOSE"}</Text>
-                </View>
-              )}
-              <Text style={styles.highlightValueLose}>{attribute === 'return' ? `${oVal}` : "--%"}</Text>
+              <Text style={[
+                styles.highlightValueWin,
+                !isPlayerWinner && { color: "#7b7777" }
+              ]}>
+                {formatValue(playerNav, attribute)}
+              </Text>
+              <View style={[styles.winBadge, { borderColor: resultColor }]}>
+                <Text style={[styles.winText, { color: resultColor }]}>
+                  {isPlayerWinner ? "WIN" : "LOSE"}
+                </Text>
+              </View>
+              <Text style={[
+                styles.highlightValueLose,
+                isPlayerWinner && { color: "#7b7777" }
+              ]}>
+                {formatValue(opponentNav, attribute)}
+              </Text>
             </View>
+            {attribute === 'expense' && (
+              <Text style={styles.helperText}>Lower is better</Text>
+            )}
           </View>
         </Shadow>
 
-        {/* Expense Ratio Row */}
-        <View style={[styles.comparisonCard, attribute === 'expense' && styles.activeAttrBorder]}>
-          <View style={styles.expenseHeader}>
-            <Text style={styles.comparisonLabel}>EXP RATIO</Text>
-            <Ionicons name="shield" size={16} color="#8EA3B8" />
+        {/* Expense Ratio Comparison (if not the main attribute) */}
+        {attribute !== 'expense' && (
+          <View style={styles.comparisonCard}>
+            <View style={styles.expenseHeader}>
+              <Text style={styles.comparisonLabel}>EXPENSE RATIO</Text>
+              <Ionicons name="shield" size={16} color="#8EA3B8" />
+            </View>
+            <View style={styles.comparisonValues}>
+              <Text style={styles.valueLeft}>{playerNav.toFixed(2)}%</Text>
+              <Text style={styles.vsText}>VS</Text>
+              <Text style={styles.valueRight}>{opponentNav.toFixed(2)}%</Text>
+            </View>
           </View>
-          <View style={styles.comparisonValues}>
-            <Text style={styles.valueLeft}>{attribute === 'expense' ? `${pVal}%` : "--%"}</Text>
-            <Text style={styles.vsText}>VS</Text>
-            <Text style={styles.valueRight}>{attribute === 'expense' ? `${oVal}%` : "--%"}</Text>
-          </View>
-        </View>
+        )}
 
-    
-
-        {/* Debt Fund Card */}
+        {/* Result Summary Card */}
         <View style={styles.debtCard}>
           <View style={styles.debtCardInner}>
-            <View style={styles.debtBadge}>
-              <Text style={styles.debtBadgeText}>DEBT</Text>
+            <View style={[styles.debtBadge, { 
+              backgroundColor: isPlayerWinner ? "rgba(255, 217, 0, 0.15)" : "rgba(255, 68, 68, 0.15)",
+              borderColor: resultColor
+            }]}>
+              <Text style={[styles.debtBadgeText, { color: resultColor }]}>
+                {isPlayerWinner ? "VICTORY" : "DEFEAT"}
+              </Text>
             </View>
 
-            <View style={styles.debtCircle}>
-              <Text style={styles.debtCircleTextTop}>DEBT</Text>
-              <Text style={styles.debtCircleTextMain}>FUND</Text>
-              <Text style={styles.debtCircleTextBottom}>SAFE WORK</Text>
+            <View style={[styles.debtCircle, { borderColor: resultColor }]}>
+              <Text style={[styles.debtCircleTextTop, { color: resultColor }]}>
+                {isPlayerWinner ? "YOU" : "OPP"}
+              </Text>
+              <Text style={[styles.debtCircleTextMain, { color: resultColor }]}>
+                {isPlayerWinner ? "WIN" : "LOSE"}
+              </Text>
+              <Text style={styles.debtCircleTextBottom}>
+                {getAttributeLabel(attribute)}
+              </Text>
+            </View>
+
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>YOUR SCORE</Text>
+                <Text style={[styles.statValue, isPlayerWinner && { color: "#FFD700" }]}>
+                  {formatValue(playerNav, attribute)}
+                </Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>OPP SCORE</Text>
+                <Text style={[styles.statValue, !isPlayerWinner && { color: "#FF4444" }]}>
+                  {formatValue(opponentNav, attribute)}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
@@ -143,7 +212,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#1d1d1f",
-    overflowY: "hidden",
   },
   content: {
     flex: 1,
@@ -157,7 +225,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
     overflow: "hidden",
-    elevation: 0,
   },
   innerGlowWrapper: {
     position: "absolute",
@@ -196,18 +263,24 @@ const styles = StyleSheet.create({
   },
   mainProgressFill: {
     height: "100%",
-    width: "85%",
     backgroundColor: "#FFD700",
     borderRadius: 5,
   },
   comparisonCard: {
-    width: "70%",
     backgroundColor: "#454545",
     borderRadius: 8,
     paddingVertical: 12,
+    paddingHorizontal: 10, 
     marginBottom: 16,
     borderWidth: 1,
-    marginHorizontal: "auto",
+    borderColor: "#5a5a5a",
+    maxWidth: "100%",
+    alignSelf: 'center'
+  },
+
+  activeAttrBorder: {
+    borderColor: "#FFD700",
+    borderWidth: 2,
   },
   comparisonLabel: {
     fontSize: 10,
@@ -244,10 +317,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderWidth: 3,
-    borderColor: "#FFD700",
-    elevation: 0,
+   
   },
-
   highlightHeader: {
     flexDirection: "row",
     justifyContent: "center",
@@ -258,7 +329,6 @@ const styles = StyleSheet.create({
   highlightLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#FFD700",
     letterSpacing: 2,
   },
   highlightValues: {
@@ -275,20 +345,26 @@ const styles = StyleSheet.create({
   highlightValueLose: {
     fontSize: 25,
     fontWeight: "800",
-    color: "#7b7777",
+    color: "#FFFFFF",
   },
   winBadge: {
     paddingHorizontal: 6,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: "#FFD700",
     backgroundColor: "#000000",
+    marginHorizontal: 8,
   },
   winText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#FFD700",
     letterSpacing: 1,
+    fontStyle: "italic",
+  },
+  helperText: {
+    fontSize: 9,
+    color: "#8EA3B8",
+    textAlign: "center",
+    marginTop: 8,
     fontStyle: "italic",
   },
   expenseHeader: {
@@ -307,59 +383,82 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
     padding: 10,
-    height: 300,
   },
   debtCardInner: {
     backgroundColor: "#4b4a4a",
     width: "100%",
-    height: "100%",
-    paddingVertical: 8,
+    paddingVertical: 16,
     paddingHorizontal: 24,
     alignItems: "center",
     position: "relative",
   },
   debtBadge: {
     alignSelf: "flex-end",
-    backgroundColor: "rgba(144, 147, 151, 0.15)",
-    borderColor: "#c0bdbd",
-    borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
     position: "absolute",
     top: 10,
     right: 10,
+    borderWidth: 1,
   },
-
   debtBadgeText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#c0bdbd",
     letterSpacing: 1,
   },
   debtCircle: {
     width: 100,
     height: 100,
-    borderRadius: 80,
+    borderRadius: 50,
     borderWidth: 5,
-    borderColor: "#979696",
     justifyContent: "center",
     alignItems: "center",
     marginTop: 20,
+    marginBottom: 20,
   },
   debtCircleTextTop: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#6e6e6e",
   },
   debtCircleTextMain: {
     fontSize: 22,
     fontWeight: "900",
-    color: "#aeaeae",
   },
   debtCircleTextBottom: {
-    fontSize: 5,
+    fontSize: 8,
     fontWeight: "500",
-    color: "#6e6e6e",
+    color: "#8EA3B8",
+    textTransform: "uppercase",
+  },
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    marginTop: 20,
+  },
+  statItem: {
+    alignItems: "center",
+  },
+  statLabel: {
+    fontSize: 9,
+    fontWeight: "600",
+    color: "#8EA3B8",
+    marginBottom: 6,
+    letterSpacing: 1,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#FFFFFF",
+  },
+  resultIndicator: {
+    marginTop: 8,
+    alignItems: "center",
+  },
+  resultIndicatorText: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 1,
   },
 });
