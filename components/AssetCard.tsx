@@ -1,7 +1,12 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-const AssetCard = ({ asset }: any) => {
+const AssetCard = ({ asset, onPress, onLongPress }: any) => {
   return (
+    <TouchableOpacity 
+      onPress={onPress} 
+      onLongPress={onLongPress} 
+      delayLongPress={500}
+    >
     <View
       style={[
         styles.card,
@@ -66,6 +71,7 @@ const AssetCard = ({ asset }: any) => {
         />
       </View>
     </View>
+    </TouchableOpacity>
   );
 };
 

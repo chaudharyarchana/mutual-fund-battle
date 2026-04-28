@@ -1,4 +1,5 @@
 import AssetCard from "@/components/AssetCard";
+import { saveToDeck } from "@/hooks/storageService";
 import { useFunds } from "@/hooks/useFunds";
 import { useSearch } from "@/hooks/useSearch";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,6 +7,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Modal,
   RefreshControl,
@@ -22,9 +24,45 @@ export default function Home() {
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { funds, loading, loadMore, hasMore, refreshing, refetch } =
-    useFunds(4);
+  const { funds, loading, loadMore, hasMore, refreshing, refetch } = useFunds(4);
   const { searchResults, isSearching } = useSearch(searchQuery);
+
+  const onLongPressCard = (item: any) => {
+  const fundId = item.amfi_code || item.id;
+
+  if (!fundId) {
+    Alert.alert("Error", "This card has no unique ID and cannot be saved.");
+    return;
+  }
+
+  Alert.alert(
+    "Collect Card",
+    `Save ${item.name} to your Vault?`,
+    [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Confirm",
+        onPress: async () => {
+          const fundToSave = {
+            id: String(fundId),
+            name: item.name || "Unknown",
+            subtitle: item.subtitle || item.amc_name || "Mutual Fund",
+            nav: item.nav || 0,
+            category: item.category || "General",
+            morningstar: item.morningstar || 0
+          };
+
+          const result = await saveToDeck(fundToSave);
+          if (result.success) {
+            Alert.alert("Success", "Card added to Vault");
+          } else {
+            Alert.alert("Error", result.message);
+          }
+        },
+      },
+    ]
+  );
+};
 
   const leftColumnFunds = funds.filter((_, index) => index % 2 === 0);
   const rightColumnFunds = funds.filter((_, index) => index % 2 === 1);
@@ -56,8 +94,8 @@ export default function Home() {
         }
       >
         <View style={styles.titleSection}>
-          <Text style={styles.mainTitle}>My Deck</Text>
-          <Text style={styles.subtitle}>{funds.length} ACTIVE ASSETS</Text>
+          <Text style={styles.mainTitle}>Market</Text>
+          <Text style={styles.subtitle}>{funds.length} DISCOVERED</Text>
         </View>
 
         <TouchableOpacity
@@ -69,13 +107,33 @@ export default function Home() {
 
         <View style={styles.grid}>
           <View style={styles.columnLeft}>
-            {leftColumnFunds.map((fund, idx) => (
-              <AssetCard key={idx} asset={fund} />
+            {leftColumnFunds.map((fund : any, idx) => (
+              <AssetCard
+                key={fund.id || idx}
+                asset={fund}
+                onPress={() =>
+                  router.push({
+                    pathname: "/details",
+                    params: { amfi_code: fund.id },
+                  })
+                }
+                onLongPress={() => onLongPressCard(fund)}
+              />
             ))}
           </View>
           <View style={styles.columnRight}>
-            {rightColumnFunds.map((fund, idx) => (
-              <AssetCard key={idx} asset={fund} />
+            {rightColumnFunds.map((fund : any, idx) => (
+              <AssetCard
+                key={fund.id || idx}
+                asset={fund}
+                onPress={() =>
+                  router.push({
+                    pathname: "/details",
+                    params: { amfi_code: fund.id },
+                  })
+                }
+                onLongPress={() => onLongPressCard(fund)}
+              />
             ))}
           </View>
         </View>
@@ -107,7 +165,7 @@ export default function Home() {
             <FlatList
               data={searchResults}
               keyExtractor={(_, idx) => idx.toString()}
-              renderItem={({ item } : any) => (
+              renderItem={({ item }: any) => (
                 <TouchableOpacity
                   style={styles.searchResultItem}
                   onPress={() => {
@@ -117,18 +175,14 @@ export default function Home() {
                       params: { amfi_code: item?.amfi_code },
                     });
                   }}
+                  onLongPress={() => onLongPressCard(item)}
                 >
                   <Text style={styles.resultTitle}>{item?.name}</Text>
-                  <Text style={styles.resultSubtitle}>{item?.subtitle}</Text>
+                  <Text style={styles.resultSubtitle}>
+                    {item?.subtitle || item?.amc_name}
+                  </Text>
                 </TouchableOpacity>
               )}
-              ListEmptyComponent={() =>
-                searchQuery.length > 1 ? (
-                  <Text style={styles.emptyText}>
-                    No funds found for "{searchQuery}"
-                  </Text>
-                ) : null
-              }
             />
           )}
         </View>
@@ -168,7 +222,6 @@ const styles = StyleSheet.create({
   },
   columnLeft: { width: "48%" },
   columnRight: { width: "48%", marginTop: 20 },
-
   modalContainer: {
     flex: 1,
     backgroundColor: "#0F1B2E",
@@ -197,5 +250,4 @@ const styles = StyleSheet.create({
   },
   resultTitle: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
   resultSubtitle: { color: "#8EA3B8", fontSize: 12, marginTop: 4 },
-  emptyText: { color: "#8EA3B8", textAlign: "center", marginTop: 40 },
 });
